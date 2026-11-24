@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Molokai · Dashboard de Pedidos · B16</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#F4F4F2; --surface:#FFFFFF; --ink:#111111; --ink2:#4A4A48; --muted:#8A8A86;
+  --line:#E3E3DF; --gold:#D4A800; --gold-soft:#F3E7B3; --dark:#111111;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'DM Sans',system-ui,sans-serif;font-size:14px;line-height:1.45}
+.wrap{max-width:1320px;margin:0 auto;padding:28px 28px 48px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;padding-bottom:20px;border-bottom:3px solid var(--ink)}
+.brand{display:flex;align-items:center;gap:16px}
+.logo{background:var(--ink);color:var(--gold);font-family:'Bebas Neue';font-size:30px;letter-spacing:1px;padding:6px 12px 2px;line-height:1}
+h1{font-family:'Bebas Neue';font-size:40px;letter-spacing:.5px;line-height:1}
+.sub{color:var(--ink2);font-size:13px;margin-top:4px}
+.filters{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.f{display:flex;flex-direction:column;gap:4px}
+.f label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink2)}
+.f input,.f select{font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid #CFCFCA;background:var(--surface);color:var(--ink);border-radius:4px;min-width:140px}
+.f select{min-width:240px;max-width:300px}
+.f input:focus,.f select:focus{outline:2px solid var(--gold);outline-offset:1px}
+.btn{font-family:inherit;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:9px 14px;border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:4px;cursor:pointer}
+.btn:hover{background:var(--gold);border-color:var(--gold);color:var(--ink)}
+.note{margin:14px 0 22px;font-size:12px;color:var(--ink2);display:flex;gap:18px;flex-wrap:wrap}
+.note b{color:var(--ink)}
+.pill{display:inline-block;background:var(--gold-soft);color:var(--ink);padding:1px 8px;border-radius:10px;font-weight:700}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.kpi{background:var(--surface);padding:18px 20px 16px;border-top:4px solid var(--gold);position:relative}
+.kpi:first-child{border-top-color:var(--ink)}
+.kpi .lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink2)}
+.kpi .val{font-family:'Bebas Neue';font-size:52px;line-height:1.05;margin-top:6px}
+.kpi .det{font-size:12px;color:var(--ink2)}
+.bar{height:6px;background:var(--line);margin-top:10px;border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--gold)}
+.sec{display:flex;align-items:baseline;gap:12px;margin:8px 0 12px}
+.sec h2{font-family:'Bebas Neue';font-size:28px;letter-spacing:.5px}
+.sec span{font-size:12px;color:var(--ink2)}
+.grid{display:grid;gap:16px;margin-bottom:28px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}
+.card{background:var(--surface);padding:18px 18px 12px}
+.card h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.card .cs{font-size:12px;color:var(--muted);margin:2px 0 10px}
+.ch{position:relative;height:260px}
+.ch.tall{height:340px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);text-align:right;padding:8px 10px;border-bottom:2px solid var(--ink);font-weight:700}
+th:first-child,td:first-child{text-align:left}
+td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
+tr:hover td{background:#FAF7EA}
+td .mw{display:inline-block;width:68px;vertical-align:middle}td .mini{display:block;height:8px;background:var(--gold);border-radius:0 4px 4px 0;vertical-align:middle;margin-right:8px}
+tfoot td{font-weight:700;border-top:2px solid var(--ink);border-bottom:none}
+.empty{padding:40px;text-align:center;color:var(--muted)}
+footer{font-size:11px;color:var(--muted);margin-top:8px;border-top:1px solid var(--line);padding-top:12px}
+@media(max-width:1000px){.kpis{grid-template-columns:1fr 1fr}.g2,.g3{grid-template-columns:1fr}}
+@media(max-width:560px){.kpis{grid-template-columns:1fr}.wrap{padding:18px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="brand">
+    <div class="logo">B16</div>
+    <div>
+      <h1>Molokai · Pedidos</h1>
+      <div class="sub">Dashboard de vendas com foco em atribuição · base de 01 a 23/11/2026</div>
+    </div>
+  </div>
+  <div class="filters">
+    <div class="f"><label for="dIni">Data inicial</label><input type="date" id="dIni"></div>
+    <div class="f"><label for="dFim">Data final</label><input type="date" id="dFim"></div>
+    <div class="f"><label for="prod">Produto</label><select id="prod"><option value="">Todos os produtos</option></select></div>
+    <button class="btn" id="reset">Limpar</button>
+  </div>
+</header>
+
+<div class="note" id="note"></div>
+
+<section class="kpis">
+  <div class="kpi"><div class="lbl">Vendas totais</div><div class="val" id="kV">–</div><div class="det" id="kVd"></div></div>
+  <div class="kpi"><div class="lbl">Valor líquido</div><div class="val" id="kR">–</div><div class="det" id="kRd"></div></div>
+  <div class="kpi"><div class="lbl">Itens vendidos</div><div class="val" id="kI">–</div><div class="det" id="kId"></div></div>
+  <div class="kpi"><div class="lbl">Compradores novos</div><div class="val" id="kN">–</div><div class="det" id="kNd"></div><div class="bar"><i id="kNb"></i></div></div>
+</section>
+
+<div class="sec"><h2>Atribuição</h2><span>De onde vieram as vendas</span></div>
+<div class="grid g2">
+  <div class="card"><h3>Vendas por atribuição</h3><div class="cs">Quantidade de pedidos</div><div class="ch tall"><canvas id="cAtrV"></canvas></div></div>
+  <div class="card"><h3>Valor líquido por atribuição</h3><div class="cs">R$ · mesma ordem do gráfico ao lado</div><div class="ch tall"><canvas id="cAtrR"></canvas></div></div>
+</div>
+<div class="grid"><div class="card"><h3>Resumo por atribuição</h3><div class="cs">Ordenado por valor líquido</div><div id="tAtr"></div></div></div>
+
+<div class="sec"><h2>Evolução diária</h2><span>Por data do pedido</span></div>
+<div class="grid g3">
+  <div class="card"><h3>Vendas por dia</h3><div class="cs">Pedidos</div><div class="ch"><canvas id="cDV"></canvas></div></div>
+  <div class="card"><h3>Itens vendidos por dia</h3><div class="cs">Unidades</div><div class="ch"><canvas id="cDI"></canvas></div></div>
+  <div class="card"><h3>Valor líquido por dia</h3><div class="cs">R$</div><div class="ch"><canvas id="cDR"></canvas></div></div>
+</div>
+
+<div class="sec"><h2>Tipo de cliente</h2><span>Novo vs recorrente</span></div>
+<div class="grid g2">
+  <div class="card"><h3>Vendas por tipo de cliente</h3><div class="cs">Pedidos</div><div class="ch" style="height:170px"><canvas id="cTV"></canvas></div></div>
+  <div class="card"><h3>Valor líquido por tipo de cliente</h3><div class="cs">R$</div><div class="ch" style="height:170px"><canvas id="cTR"></canvas></div></div>
+</div>
+
+<div class="sec"><h2>Produtos</h2><span>Top 12 por valor · demais agrupados em “Outros”</span></div>
+<div class="grid g2">
+  <div class="card"><h3>Vendas por produto</h3><div class="cs">Pedidos que contêm o produto</div><div class="ch" style="height:420px"><canvas id="cPV"></canvas></div></div>
+  <div class="card"><h3>Valor líquido por produto</h3><div class="cs">R$ · rateado por item (ver nota)</div><div class="ch" style="height:420px"><canvas id="cPR"></canvas></div></div>
+</div>
+
+<footer>
+  <b>Regras:</b> “Venda” = pedido com status <b>nfeemitida</b> (pedidos em <i>processing</i>/<i>faturamento</i> ficam fora de todos os números). Valor líquido = coluna “Vendas Líquidas” (sem frete).
+  Compradores novos = pedidos com tipo de cliente “new” ÷ total de pedidos.
+  Pedidos com vários produtos têm o valor líquido rateado entre os itens proporcionalmente a um preço de referência de cada livro (mediana dos pedidos em que ele foi vendido sozinho), por isso o valor por produto é estimado — a soma por pedido bate exatamente com o original.
+  Ao filtrar um produto, vendas = pedidos que contêm o produto, e itens/valor = apenas a parte daquele produto.
+</footer>
+</div>
+
+<script>
+const DATA = {"prods":["A Boa Educação - Tihamér Tóth - 3ª Edição","A Paz da Alma 1ª Edição - Fulton J. Sheen","Angelus do Papa Bento XVI","Bento XVI - O que é o Cristianismo - 1ª Edição (Obra Póstuma)","Calista: Uma história do século III - São John Henry Newman","Contemplação e Sacerdócio 2ª Edição - Jean-Paul Galichet","Depois da Tormenta, A Liberdade 1ª Edição - José Miguel Cejas","Deus no Coração, o Coração em Deus - Dom Bernardo Bonowitz -1ª Edição","Escatologia - Morte e Vida Eterna 3ª Edição - Joseph Ratzinger","Homilias do Papa Bento XVI","Justiça e Caridade - Fulton J. Sheen","MEDITAÇÕES SOBRE A PAIXÃO DE CRISTO - Fulton J. Sheen","Meditações e Devoções - São John Henry Newman","O CATECISMO - FULTON J. SHEEN","O Corpo Místico de Cristo - 1ª Edição - Fulton J. Sheen","O Eterno Galileu - 1ª Edição - Fulton J. Sheen","O Jovem de Caráter - Tihamér Tóth - 4ª Edição","ORAÇÃO, SOFRIMENTO E VIDA ESPIRITUAL - Fulton J. Sheen","Os Dez Mandamentos - Tihamér Tóth","Os Últimos Fins do Homem - Pe. Manuel Bernardes","Pai Nosso - Tihamér Tóth","Por Deus e Pela Pátria - 1ª Edição - Fulton J. Sheen","RUMO AO CÉU - Fulton J. Sheen","Sobre a Santa Virgindade - Bilíngue - Santo Agostinho","TESOURO EM BARRO - Fulton J. Sheen","TRÊS PARA CASAR - FULTON J. SHEEN","Uma Declaração de Dependência - 1ª Edição - Fulton J. Sheen","VERDADES ETERNAS QUE FALAM À ALMA - Fulton J. Sheen","VIA SACRA - Fulton J. Sheen"],"orders":[{"id":11794,"dt":"2026-11-23","st":"processing","tp":"new","at":"Origem: Email-fidelidade-dez","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11793,"dt":"2026-11-23","st":"processing","tp":"new","at":"Orgânico: Google","cp":"dom10","pg":"PIX","v":324.05,"l":[[22,1,236.56],[1,1,87.49]]},{"id":11791,"dt":"2026-11-22","st":"processing","tp":"new","at":"Encaminhamento: Youtube.com","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11785,"dt":"2026-11-22","st":"processing","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"Boleto e lotérica","v":249.0,"l":[[22,1,249.0]]},{"id":11790,"dt":"2026-11-22","st":"processing","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"Cartão","v":306.0,"l":[[13,2,306.0]]},{"id":11789,"dt":"2026-11-22","st":"processing","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"PIX","v":245.1,"l":[[24,1,245.1]]},{"id":11788,"dt":"2026-11-22","st":"processing","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"Cartão","v":510.15,"l":[[1,1,92.5],[22,1,250.12],[28,1,167.53]]},{"id":11787,"dt":"2026-11-22","st":"processing","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"PIX","v":145.35,"l":[[13,1,145.35]]},{"id":11786,"dt":"2026-11-22","st":"processing","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"PIX","v":448.8,"l":[[25,4,448.8]]},{"id":11783,"dt":"2026-11-21","st":"processing","tp":"new","at":"Orgânico: Google","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11780,"dt":"2026-11-21","st":"processing","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"PIX","v":145.35,"l":[[13,1,145.35]]},{"id":11778,"dt":"2026-11-20","st":"processing","tp":"returning","at":"Orgânico: Google","cp":"","pg":"Cartão","v":249.0,"l":[[22,1,249.0]]},{"id":11777,"dt":"2026-11-20","st":"processing","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"PIX","v":125.4,"l":[[25,1,125.4]]},{"id":11776,"dt":"2026-11-20","st":"processing","tp":"new","at":"Origem: Ig","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11775,"dt":"2026-11-20","st":"processing","tp":"new","at":"Orgânico: Google","cp":"","pg":"Cartão","v":318.0,"l":[[11,1,186.0],[25,1,132.0]]},{"id":11774,"dt":"2026-11-19","st":"processing","tp":"new","at":"Orgânico: Google","cp":"dom10","pg":"Cartão","v":448.2,"l":[[22,2,448.2]]},{"id":11773,"dt":"2026-11-19","st":"processing","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"PIX","v":125.4,"l":[[25,1,125.4]]},{"id":11772,"dt":"2026-11-19","st":"faturamento","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"PIX","v":290.7,"l":[[14,1,74.11],[11,1,216.59]]},{"id":11771,"dt":"2026-11-19","st":"nfeemitida","tp":"returning","at":"Direto","cp":"","pg":"PIX","v":236.55,"l":[[22,1,236.55]]},{"id":11770,"dt":"2026-11-19","st":"nfeemitida","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"PIX","v":236.55,"l":[[22,1,236.55]]},{"id":11769,"dt":"2026-11-19","st":"nfeemitida","tp":"new","at":"Origem: GoogleAds","cp":"novos10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11768,"dt":"2026-11-19","st":"nfeemitida","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"PIX","v":236.55,"l":[[22,1,236.55]]},{"id":11767,"dt":"2026-11-19","st":"nfeemitida","tp":"new","at":"Direto","cp":"","pg":"PIX","v":308.75,"l":[[22,1,253.64],[10,1,55.11]]},{"id":11766,"dt":"2026-11-19","st":"nfeemitida","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"PIX","v":236.55,"l":[[22,1,236.55]]},{"id":11765,"dt":"2026-11-18","st":"nfeemitida","tp":"new","at":"Origem: Ig","cp":"","pg":"Cartão","v":239.0,"l":[[17,1,239.0]]},{"id":11764,"dt":"2026-11-18","st":"nfeemitida","tp":"returning","at":"Origem: Fbads-frio","cp":"","pg":"PIX","v":236.55,"l":[[22,1,236.55]]},{"id":11763,"dt":"2026-11-18","st":"nfeemitida","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"PIX","v":145.35,"l":[[13,1,145.35]]},{"id":11762,"dt":"2026-11-18","st":"nfeemitida","tp":"returning","at":"Direto","cp":"","pg":"PIX","v":1907.25,"l":[[22,1,243.62],[28,1,163.18],[11,1,192.09],[27,1,100.75],[17,1,259.82],[13,1,158.01],[0,1,191.06],[2,1,334.7],[9,1,264.01]]},{"id":11761,"dt":"2026-11-18","st":"nfeemitida","tp":"new","at":"Orgânico: Google","cp":"","pg":"PIX","v":236.55,"l":[[22,1,236.55]]},{"id":11760,"dt":"2026-11-18","st":"nfeemitida","tp":"new","at":"Orgânico: Google","cp":"","pg":"Cartão","v":132.0,"l":[[25,1,132.0]]},{"id":11745,"dt":"2026-11-17","st":"nfeemitida","tp":"new","at":"Orgânico: Google","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11744,"dt":"2026-11-17","st":"nfeemitida","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"Cartão","v":249.0,"l":[[22,1,249.0]]},{"id":11742,"dt":"2026-11-17","st":"nfeemitida","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"PIX","v":77.9,"l":[[20,1,77.9]]},{"id":11741,"dt":"2026-11-17","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"dom10","pg":"Cartão","v":332.1,"l":[[22,1,261.54],[14,1,70.56]]},{"id":11743,"dt":"2026-11-17","st":"nfeemitida","tp":"returning","at":"Origem: Fbads-frio","cp":"","pg":"PIX","v":245.1,"l":[[24,1,245.1]]},{"id":11740,"dt":"2026-11-16","st":"nfeemitida","tp":"new","at":"Origem: GoogleAds","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11738,"dt":"2026-11-16","st":"nfeemitida","tp":"new","at":"Origem: GoogleAds","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11737,"dt":"2026-11-16","st":"nfeemitida","tp":"new","at":"Orgânico: Google","cp":"","pg":"PIX","v":236.55,"l":[[22,1,236.55]]},{"id":11736,"dt":"2026-11-16","st":"nfeemitida","tp":"returning","at":"Origem: GoogleAds","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11734,"dt":"2026-11-16","st":"nfeemitida","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"Cartão","v":158.0,"l":[[28,1,158.0]]},{"id":11733,"dt":"2026-11-16","st":"nfeemitida","tp":"returning","at":"Orgânico: Google","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11732,"dt":"2026-11-16","st":"nfeemitida","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"PIX","v":456.45,"l":[[28,1,160.36],[14,1,64.59],[3,1,76.2],[13,1,155.29]]},{"id":11731,"dt":"2026-11-15","st":"nfeemitida","tp":"new","at":"Orgânico: Google","cp":"","pg":"PIX","v":343.43,"l":[[8,1,114.78],[22,1,228.65]]},{"id":11730,"dt":"2026-11-15","st":"nfeemitida","tp":"new","at":"Origem: GoogleAds","cp":"molokai10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11729,"dt":"2026-11-15","st":"nfeemitida","tp":"new","at":"Origem: GoogleAds","cp":"","pg":"PIX","v":558.0,"l":[[25,1,118.9],[22,1,212.49],[17,1,226.61]]},{"id":11728,"dt":"2026-11-15","st":"nfeemitida","tp":"new","at":"Origem: GoogleAdsShopping","cp":"","pg":"Cartão","v":249.0,"l":[[22,1,249.0]]},{"id":11727,"dt":"2026-11-14","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11726,"dt":"2026-11-14","st":"nfeemitida","tp":"new","at":"Origem: GoogleAds","cp":"","pg":"Cartão","v":249.0,"l":[[22,1,249.0]]},{"id":11725,"dt":"2026-11-14","st":"nfeemitida","tp":"returning","at":"Origem: GoogleAds","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11724,"dt":"2026-11-14","st":"nfeemitida","tp":"new","at":"Origem: GoogleAds","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11723,"dt":"2026-11-13","st":"nfeemitida","tp":"new","at":"Origem: GoogleAdsShopping","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11722,"dt":"2026-11-13","st":"nfeemitida","tp":"new","at":"Orgânico: Google","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11721,"dt":"2026-11-13","st":"nfeemitida","tp":"new","at":"Origem: Ig","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11720,"dt":"2026-11-13","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"","pg":"Cartão","v":249.0,"l":[[22,1,249.0]]},{"id":11718,"dt":"2026-11-12","st":"nfeemitida","tp":"new","at":"Origem: GoogleAds","cp":"dom10","pg":"PIX","v":417.24,"l":[[22,1,201.91],[17,1,215.33]]},{"id":11717,"dt":"2026-11-12","st":"nfeemitida","tp":"returning","at":"Origem: GoogleAdsShopping","cp":"","pg":"Cartão","v":85.0,"l":[[7,1,85.0]]},{"id":11716,"dt":"2026-11-12","st":"nfeemitida","tp":"new","at":"Origem: GoogleAds","cp":"","pg":"Cartão","v":112.5,"l":[[8,1,112.5]]},{"id":11715,"dt":"2026-11-12","st":"nfeemitida","tp":"new","at":"Origem: GoogleAds","cp":"","pg":"PIX","v":236.55,"l":[[22,1,236.55]]},{"id":11714,"dt":"2026-11-12","st":"nfeemitida","tp":"new","at":"Direto","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11710,"dt":"2026-11-11","st":"nfeemitida","tp":"returning","at":"Origem: Fbads-frio","cp":"","pg":"PIX","v":145.35,"l":[[13,1,145.35]]},{"id":11709,"dt":"2026-11-11","st":"nfeemitida","tp":"new","at":"Direto","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11707,"dt":"2026-11-11","st":"nfeemitida","tp":"new","at":"Origem: GoogleAds","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11706,"dt":"2026-11-11","st":"nfeemitida","tp":"new","at":"Origem: GoogleAdsShopping","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11705,"dt":"2026-11-11","st":"nfeemitida","tp":"new","at":"Direto","cp":"","pg":"PIX","v":782.0,"l":[[27,1,98.94],[17,1,255.16],[22,1,239.25],[11,1,188.65]]},{"id":11704,"dt":"2026-11-11","st":"nfeemitida","tp":"new","at":"Origem: GoogleAds","cp":"novos10","pg":"Cartão","v":889.0,"l":[[22,1,196.97],[27,1,81.46],[14,1,53.14],[24,1,215.43],[17,1,210.07],[28,1,131.93]]},{"id":11703,"dt":"2026-11-11","st":"nfeemitida","tp":"returning","at":"Direto","cp":"","pg":"PIX","v":150.1,"l":[[28,1,150.1]]},{"id":11701,"dt":"2026-11-11","st":"nfeemitida","tp":"new","at":"Direto","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11700,"dt":"2026-11-11","st":"nfeemitida","tp":"new","at":"Encaminhamento: Bing.com","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11699,"dt":"2026-11-11","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"dom10","pg":"Cartão","v":366.3,"l":[[28,1,146.93],[22,1,219.37]]},{"id":11698,"dt":"2026-11-11","st":"nfeemitida","tp":"new","at":"Orgânico: Google","cp":"","pg":"PIX","v":575.1,"l":[[22,1,216.75],[25,1,121.29],[24,1,237.06]]},{"id":11697,"dt":"2026-11-11","st":"nfeemitida","tp":"new","at":"Orgânico: Google","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11696,"dt":"2026-11-11","st":"nfeemitida","tp":"returning","at":"Orgânico: Google","cp":"","pg":"PIX","v":462.4,"l":[[28,1,148.54],[11,1,174.86],[14,1,59.83],[15,1,79.17]]},{"id":11695,"dt":"2026-11-11","st":"nfeemitida","tp":"new","at":"Direto","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11694,"dt":"2026-11-11","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11693,"dt":"2026-11-10","st":"nfeemitida","tp":"returning","at":"Origem: Fbads-frio","cp":"","pg":"PIX","v":145.35,"l":[[13,1,145.35]]},{"id":11692,"dt":"2026-11-10","st":"nfeemitida","tp":"new","at":"Direto","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11691,"dt":"2026-11-10","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11689,"dt":"2026-11-10","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11688,"dt":"2026-11-10","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11687,"dt":"2026-11-10","st":"nfeemitida","tp":"new","at":"Orgânico: Google","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11686,"dt":"2026-11-10","st":"nfeemitida","tp":"new","at":"Direto","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11685,"dt":"2026-11-10","st":"nfeemitida","tp":"returning","at":"Orgânico: Google","cp":"","pg":"PIX","v":672.3,"l":[[22,3,672.3]]},{"id":11684,"dt":"2026-11-10","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11683,"dt":"2026-11-10","st":"nfeemitida","tp":"new","at":"Direto","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11682,"dt":"2026-11-10","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11681,"dt":"2026-11-10","st":"nfeemitida","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"PIX","v":176.7,"l":[[11,1,176.7]]},{"id":11679,"dt":"2026-11-10","st":"nfeemitida","tp":"new","at":"Orgânico: Google","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11678,"dt":"2026-11-09","st":"nfeemitida","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"PIX","v":125.4,"l":[[25,1,125.4]]},{"id":11677,"dt":"2026-11-09","st":"nfeemitida","tp":"new","at":"Orgânico: Google","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11676,"dt":"2026-11-09","st":"nfeemitida","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"PIX","v":150.1,"l":[[28,1,150.1]]},{"id":11674,"dt":"2026-11-09","st":"nfeemitida","tp":"new","at":"Orgânico: Google","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11672,"dt":"2026-11-09","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11670,"dt":"2026-11-09","st":"nfeemitida","tp":"returning","at":"Origem: Fbads-frio","cp":"","pg":"Cartão","v":1051.2,"l":[[11,1,188.35],[25,4,534.67],[2,1,328.18]]},{"id":11671,"dt":"2026-11-09","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"","pg":"Cartão","v":249.0,"l":[[22,1,249.0]]},{"id":11669,"dt":"2026-11-09","st":"nfeemitida","tp":"returning","at":"Encaminhamento: Youtube.com","cp":"","pg":"Cartão","v":249.0,"l":[[22,1,249.0]]},{"id":11667,"dt":"2026-11-09","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"dom10","pg":"Cartão","v":448.2,"l":[[22,2,448.2]]},{"id":11666,"dt":"2026-11-09","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"","pg":"Cartão","v":80.0,"l":[[15,1,80.0]]},{"id":11664,"dt":"2026-11-09","st":"nfeemitida","tp":"new","at":"Origem: GoogleAdsShopping","cp":"","pg":"Boleto e lotérica","v":487.35,"l":[[22,1,229.98],[25,2,257.37]]},{"id":11665,"dt":"2026-11-08","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"dom10","pg":"Cartão","v":443.7,"l":[[13,1,150.01],[14,1,62.4],[22,1,231.29]]},{"id":11663,"dt":"2026-11-08","st":"nfeemitida","tp":"returning","at":"Direto","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11662,"dt":"2026-11-08","st":"nfeemitida","tp":"returning","at":"Encaminhamento: Br.search.yahoo.com","cp":"fidelidade10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11660,"dt":"2026-11-08","st":"nfeemitida","tp":"new","at":"Origem: GoogleAdsShopping","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11659,"dt":"2026-11-08","st":"nfeemitida","tp":"returning","at":"Origem: GoogleAds","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11658,"dt":"2026-11-08","st":"nfeemitida","tp":"new","at":"Origem: GoogleAds","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11657,"dt":"2026-11-07","st":"nfeemitida","tp":"new","at":"Direto","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11656,"dt":"2026-11-07","st":"nfeemitida","tp":"new","at":"Orgânico: Google","cp":"","pg":"PIX","v":236.55,"l":[[22,1,236.55]]},{"id":11655,"dt":"2026-11-07","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11654,"dt":"2026-11-07","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"","pg":"PIX","v":236.55,"l":[[22,1,236.55]]},{"id":11653,"dt":"2026-11-07","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"","pg":"PIX","v":236.55,"l":[[22,1,236.55]]},{"id":11652,"dt":"2026-11-07","st":"nfeemitida","tp":"new","at":"Direto","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11651,"dt":"2026-11-07","st":"nfeemitida","tp":"new","at":"Origem: GoogleAds","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11650,"dt":"2026-11-07","st":"nfeemitida","tp":"returning","at":"Encaminhamento: Youtube.com","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11649,"dt":"2026-11-07","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11646,"dt":"2026-11-07","st":"nfeemitida","tp":"returning","at":"Origem: Fbads-frio","cp":"","pg":"Boleto e lotérica","v":288.8,"l":[[15,1,82.92],[16,1,23.73],[0,1,182.15]]},{"id":11647,"dt":"2026-11-06","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"","pg":"Cartão","v":249.0,"l":[[22,1,249.0]]},{"id":11645,"dt":"2026-11-06","st":"nfeemitida","tp":"new","at":"Direto","cp":"","pg":"PIX","v":226.1,"l":[[25,1,144.12],[3,1,81.98]]},{"id":11644,"dt":"2026-11-05","st":"nfeemitida","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"PIX","v":245.1,"l":[[24,1,245.1]]},{"id":11643,"dt":"2026-11-05","st":"nfeemitida","tp":"new","at":"Orgânico: Google","cp":"","pg":"PIX","v":245.1,"l":[[24,1,245.1]]},{"id":11640,"dt":"2026-11-05","st":"nfeemitida","tp":"new","at":"Direto","cp":"","pg":"PIX","v":236.55,"l":[[22,1,236.55]]},{"id":11639,"dt":"2026-11-05","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"dom10","pg":"PIX","v":1990.68,"l":[[15,1,74.65],[7,1,79.32],[22,1,209.12],[14,1,56.42],[17,1,223.03],[13,1,135.64],[25,1,117.02],[20,1,72.69],[3,1,66.56],[11,1,164.89],[24,1,228.72],[27,1,86.48],[16,1,21.37],[21,1,18.66],[0,1,164.0],[1,1,77.34],[26,1,18.66],[5,1,18.66],[6,1,18.66],[10,1,45.44],[12,1,18.66],[4,1,18.66],[23,1,18.66],[18,1,18.66],[19,1,18.66]]},{"id":11638,"dt":"2026-11-05","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11636,"dt":"2026-11-05","st":"nfeemitida","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"PIX","v":176.7,"l":[[11,1,176.7]]},{"id":11635,"dt":"2026-11-04","st":"nfeemitida","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"Cartão","v":258.0,"l":[[24,1,258.0]]},{"id":11634,"dt":"2026-11-04","st":"nfeemitida","tp":"new","at":"Direto","cp":"fidelidade10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11632,"dt":"2026-11-03","st":"nfeemitida","tp":"returning","at":"Orgânico: Google","cp":"dom10","pg":"PIX","v":315.5,"l":[[22,1,248.47],[14,1,67.03]]},{"id":11631,"dt":"2026-11-03","st":"nfeemitida","tp":"new","at":"Direto","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11630,"dt":"2026-11-03","st":"nfeemitida","tp":"returning","at":"Orgânico: Google","cp":"","pg":"PIX","v":145.35,"l":[[13,1,145.35]]},{"id":11629,"dt":"2026-11-03","st":"nfeemitida","tp":"new","at":"Orgânico: Google","cp":"","pg":"PIX","v":236.55,"l":[[22,1,236.55]]},{"id":11628,"dt":"2026-11-03","st":"nfeemitida","tp":"returning","at":"Orgânico: Google","cp":"","pg":"PIX","v":236.55,"l":[[22,1,236.55]]},{"id":11627,"dt":"2026-11-03","st":"nfeemitida","tp":"new","at":"Orgânico: Google","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11626,"dt":"2026-11-03","st":"nfeemitida","tp":"new","at":"Direto","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11597,"dt":"2026-11-03","st":"nfeemitida","tp":"returning","at":"Origem: Fbads-frio","cp":"","pg":"Boleto e lotérica","v":407.0,"l":[[22,1,243.74],[28,1,163.26]]},{"id":11625,"dt":"2026-11-02","st":"nfeemitida","tp":"new","at":"Orgânico: Google","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11624,"dt":"2026-11-02","st":"nfeemitida","tp":"returning","at":"Orgânico: Google","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11623,"dt":"2026-11-02","st":"nfeemitida","tp":"new","at":"Orgânico: Google","cp":"dom10","pg":"PIX","v":508.12,"l":[[15,1,64.43],[11,1,142.31],[22,1,180.49],[28,1,120.89]]},{"id":11622,"dt":"2026-11-02","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11620,"dt":"2026-11-02","st":"nfeemitida","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"Cartão","v":249.0,"l":[[22,1,249.0]]},{"id":11619,"dt":"2026-11-02","st":"nfeemitida","tp":"new","at":"Origem: GoogleAds","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11611,"dt":"2026-11-02","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11609,"dt":"2026-11-01","st":"nfeemitida","tp":"new","at":"Origem: GoogleAdsShopping","cp":"","pg":"PIX","v":236.55,"l":[[22,1,236.55]]},{"id":11607,"dt":"2026-11-01","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11606,"dt":"2026-11-01","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"dom10","pg":"PIX","v":212.9,"l":[[22,1,212.9]]},{"id":11605,"dt":"2026-11-01","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"","pg":"PIX","v":125.4,"l":[[25,1,125.4]]},{"id":11604,"dt":"2026-11-01","st":"nfeemitida","tp":"new","at":"Origem: GoogleAds","cp":"","pg":"PIX","v":236.55,"l":[[22,1,236.55]]},{"id":11603,"dt":"2026-11-01","st":"nfeemitida","tp":"new","at":"Origem: GoogleAds","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11602,"dt":"2026-11-01","st":"nfeemitida","tp":"returning","at":"Origem: GoogleAdsShopping","cp":"","pg":"Cartão","v":249.0,"l":[[22,1,249.0]]},{"id":11601,"dt":"2026-11-01","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"","pg":"PIX","v":236.55,"l":[[22,1,236.55]]},{"id":11600,"dt":"2026-11-01","st":"nfeemitida","tp":"new","at":"Origem: Fbads-frio","cp":"","pg":"Cartão","v":435.0,"l":[[11,1,191.78],[22,1,243.22]]},{"id":11599,"dt":"2026-11-01","st":"nfeemitida","tp":"new","at":"Encaminhamento: Youtube.com","cp":"dom10","pg":"Cartão","v":224.1,"l":[[22,1,224.1]]},{"id":11598,"dt":"2026-11-01","st":"nfeemitida","tp":"returning","at":"Encaminhamento: Youtube.com","cp":"","pg":"PIX","v":236.55,"l":[[22,1,236.55]]}]};
+const ST_VENDA = 'nfeemitida';
+const C = {ink:'#111111', gold:'#D4A800', grid:'#ECECE8', muted:'#8A8A86', ink2:'#4A4A48'};
+const brl = v => v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const brl0 = v => 'R$ ' + Math.round(v).toLocaleString('pt-BR');
+const brlK = v => v>=1000 ? 'R$ '+(v/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})+' mil' : brl0(v);
+const num = v => v.toLocaleString('pt-BR');
+const pct = v => (v*100).toLocaleString('pt-BR',{maximumFractionDigits:1})+'%';
+
+/* nomes curtos */
+const shortName = n => {
+  let s = n.split(' - ')[0].replace(/\s*\d+ª Edição/,'').trim();
+  if (s === s.toUpperCase()) s = s.toLowerCase().replace(/(^|\s)(\S)/g,(m,a,b)=>a+b.toUpperCase()).replace(/\b(De|Da|Do|Ao|A|O|E|Para|Em|Sobre)\b/g,w=>w.toLowerCase()).replace(/^./,c=>c.toUpperCase());
+  return s;
+};
+const shortAtr = a => a.replace('Encaminhamento: ','Ref: ').replace('Origem: ','').replace('Orgânico: ','Orgânico ');
+const TIPO = {new:'Novo', returning:'Recorrente'};
+
+/* filtros */
+const sel = document.getElementById('prod'), dIni = document.getElementById('dIni'), dFim = document.getElementById('dFim');
+const allDates = DATA.orders.map(o=>o.dt).sort();
+const MIN = allDates[0], MAX = allDates[allDates.length-1];
+const prodOrder = DATA.prods.map((p,i)=>i).sort((a,b)=>shortName(DATA.prods[a]).localeCompare(shortName(DATA.prods[b]),'pt-BR'));
+prodOrder.forEach(i=>{const o=document.createElement('option');o.value=i;o.textContent=shortName(DATA.prods[i]);o.title=DATA.prods[i];sel.appendChild(o)});
+function resetF(){dIni.value=MIN;dFim.value=MAX;sel.value='';render()}
+[dIni,dFim,sel].forEach(e=>e.addEventListener('change',render));
+document.getElementById('reset').addEventListener('click',resetF);
+
+/* charts */
+Chart.defaults.font.family = "'DM Sans', system-ui, sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = C.ink2;
+const charts = {};
+const valueLabels = {
+  id:'valueLabels',
+  afterDatasetsDraw(chart, args, opts){
+    if(!opts || !opts.fmt) return;
+    const {ctx} = chart; const horiz = chart.options.indexAxis==='y';
+    chart.data.datasets.forEach((ds,di)=>{
+      const meta = chart.getDatasetMeta(di);
+      meta.data.forEach((el,i)=>{
+        const v = ds.data[i]; if(!v) return;
+        ctx.save(); ctx.font = "600 11px 'DM Sans'"; ctx.fillStyle = C.ink;
+        if(horiz){ctx.textBaseline='middle';ctx.textAlign='left';ctx.fillText(opts.fmt(v), el.x+6, el.y);}
+        else {ctx.textBaseline='bottom';ctx.textAlign='center';ctx.fillText(opts.fmt(v), el.x, el.y-3);}
+        ctx.restore();
+      });
+    });
+  }
+};
+Chart.register(valueLabels);
+
+function tooltipBase(fmt){
+  return {backgroundColor:'#111',titleColor:'#fff',bodyColor:'#fff',padding:10,cornerRadius:4,displayColors:false,
+    titleFont:{weight:'700'},callbacks:{label:c=>fmt(c.raw)}};
+}
+function hbar(id, labels, values, fmt, color, fullLabels){
+  const cfg = {
+    type:'bar',
+    data:{labels, datasets:[{data:values, backgroundColor:color, hoverBackgroundColor:C.ink, borderRadius:{topRight:4,bottomRight:4}, borderSkipped:false, barPercentage:.78, categoryPercentage:.9}]},
+    options:{indexAxis:'y', responsive:true, maintainAspectRatio:false, animation:{duration:300},
+      layout:{padding:{right:120}},
+      plugins:{legend:{display:false}, valueLabels:{fmt},
+        tooltip:{...tooltipBase(fmt), callbacks:{title:c=>fullLabels?fullLabels[c[0].dataIndex]:c[0].label, label:c=>fmt(c.raw)}}},
+      scales:{x:{display:false, beginAtZero:true, grace:'4%'}, y:{grid:{display:false}, border:{display:false}, ticks:{color:C.ink, autoSkip:false}}}}
+  };
+  draw(id,cfg);
+}
+function vbar(id, labels, values, fmt, color, tickFmt){
+  const cfg = {
+    type:'bar',
+    data:{labels, datasets:[{data:values, backgroundColor:color, hoverBackgroundColor:C.ink, borderRadius:{topLeft:4,topRight:4}, borderSkipped:false, barPercentage:.82, categoryPercentage:.9}]},
+    options:{responsive:true, maintainAspectRatio:false, animation:{duration:300},
+      interaction:{mode:'index', intersect:false},
+      plugins:{legend:{display:false}, valueLabels:null, tooltip:tooltipBase(fmt)},
+      scales:{x:{grid:{display:false}, border:{color:C.ink}, ticks:{maxRotation:0, autoSkipPadding:8}},
+              y:{beginAtZero:true, grid:{color:C.grid}, border:{display:false}, ticks:{precision:0, callback:tickFmt||(v=>v), maxTicksLimit:5}}}}
+  };
+  draw(id,cfg);
+}
+function draw(id,cfg){ if(charts[id]) charts[id].destroy(); charts[id] = new Chart(document.getElementById(id), cfg); }
+
+function render(){
+  let a = dIni.value || MIN, b = dFim.value || MAX; if(a>b){[a,b]=[b,a]}
+  const p = sel.value===''?null:+sel.value;
+
+  const inRange = DATA.orders.filter(o=>o.dt>=a && o.dt<=b && (p===null || o.l.some(l=>l[0]===p)));
+  const vend = inRange.filter(o=>o.st===ST_VENDA);
+  const pend = inRange.filter(o=>o.st!==ST_VENDA);
+  // métricas por pedido respeitando filtro de produto
+  const m = o => { const ls = p===null?o.l:o.l.filter(l=>l[0]===p);
+    return {it:ls.reduce((s,l)=>s+l[1],0), v: p===null?o.v:ls.reduce((s,l)=>s+l[2],0)}; };
+
+  // nota
+  document.getElementById('note').innerHTML =
+    `<span>Período: <b>${a.split('-').reverse().join('/')}</b> a <b>${b.split('-').reverse().join('/')}</b></span>`+
+    `<span>Produto: <b>${p===null?'Todos':shortName(DATA.prods[p])}</b></span>`+
+    `<span><span class="pill">${pend.length}</span> pedidos em processamento/faturamento fora da conta (${brl0(pend.reduce((s,o)=>s+m(o).v,0))})</span>`;
+
+  // KPIs
+  const N = vend.length, R = vend.reduce((s,o)=>s+m(o).v,0), I = vend.reduce((s,o)=>s+m(o).it,0);
+  const nNew = vend.filter(o=>o.tp==='new').length;
+  document.getElementById('kV').textContent = num(N);
+  document.getElementById('kVd').textContent = 'pedidos com NF-e emitida';
+  document.getElementById('kR').textContent = brlK(R);
+  document.getElementById('kRd').textContent = N?`${brl(R)} · ticket médio ${brl(R/N)}`:'';
+  document.getElementById('kI').textContent = num(I);
+  document.getElementById('kId').textContent = N?`${(I/N).toLocaleString('pt-BR',{maximumFractionDigits:2})} itens por pedido`:'';
+  document.getElementById('kN').textContent = N?pct(nNew/N):'–';
+  document.getElementById('kNd').textContent = `${num(nNew)} novos de ${num(N)} pedidos`;
+  document.getElementById('kNb').style.width = N?(nNew/N*100)+'%':'0';
+
+  // atribuição
+  const byA = {};
+  vend.forEach(o=>{const k=o.at; byA[k]=byA[k]||{n:0,v:0,it:0,nw:0}; const x=m(o); byA[k].n++; byA[k].v+=x.v; byA[k].it+=x.it; if(o.tp==='new')byA[k].nw++;});
+  const atr = Object.entries(byA).sort((x,y)=>y[1].v-x[1].v || y[1].n-x[1].n);
+  hbar('cAtrV', atr.map(x=>shortAtr(x[0])), atr.map(x=>x[1].n), v=>num(v), C.ink, atr.map(x=>x[0]));
+  hbar('cAtrR', atr.map(x=>shortAtr(x[0])), atr.map(x=>+x[1].v.toFixed(2)), brlK, C.gold, atr.map(x=>x[0]));
+  const maxV = Math.max(1,...atr.map(x=>x[1].v));
+  document.getElementById('tAtr').innerHTML = atr.length ? `<table><thead><tr><th>Atribuição</th><th>Vendas</th><th>% vendas</th><th>Valor líquido</th><th>% valor</th><th>Ticket médio</th><th>Itens</th><th>% novos</th></tr></thead><tbody>`+
+    atr.map(([k,x])=>`<tr><td><span class="mw"><span class="mini" style="width:${Math.max(3,x.v/maxV*60)}px"></span></span>${k}</td><td>${num(x.n)}</td><td>${pct(x.n/N)}</td><td>${brl(x.v)}</td><td>${pct(x.v/R)}</td><td>${brl(x.v/x.n)}</td><td>${num(x.it)}</td><td>${pct(x.nw/x.n)}</td></tr>`).join('')+
+    `</tbody><tfoot><tr><td>Total</td><td>${num(N)}</td><td>100%</td><td>${brl(R)}</td><td>100%</td><td>${N?brl(R/N):'–'}</td><td>${num(I)}</td><td>${N?pct(nNew/N):'–'}</td></tr></tfoot></table>`
+    : '<div class="empty">Nenhuma venda no filtro selecionado.</div>';
+
+  // diário (todos os dias do intervalo)
+  const days=[]; for(let d=new Date(a+'T12:00:00'); d<=new Date(b+'T12:00:00'); d.setDate(d.getDate()+1)) days.push(d.toISOString().slice(0,10));
+  const dV={},dI={},dR={}; days.forEach(d=>{dV[d]=0;dI[d]=0;dR[d]=0});
+  vend.forEach(o=>{const x=m(o); dV[o.dt]++; dI[o.dt]+=x.it; dR[o.dt]+=x.v;});
+  const lbl = days.map(d=>d.slice(8,10)+'/'+d.slice(5,7));
+  vbar('cDV', lbl, days.map(d=>dV[d]), v=>num(v)+' vendas', C.ink);
+  vbar('cDI', lbl, days.map(d=>dI[d]), v=>num(v)+' itens', C.ink2);
+  vbar('cDR', lbl, days.map(d=>+dR[d].toFixed(2)), brl, C.gold, v=>v>=1000?(v/1000)+' mil':v);
+
+  // tipo de cliente
+  const tp = ['new','returning'].map(t=>{const os=vend.filter(o=>o.tp===t); return {t, n:os.length, v:os.reduce((s,o)=>s+m(o).v,0)}});
+  hbar('cTV', tp.map(x=>TIPO[x.t]), tp.map(x=>x.n), v=>`${num(v)} (${N?pct(v/N):'–'})`, [C.gold, C.ink]);
+  hbar('cTR', tp.map(x=>TIPO[x.t]), tp.map(x=>+x.v.toFixed(2)), v=>`${brlK(v)} (${R?pct(v/R):'–'})`, [C.gold, C.ink]);
+
+  // produtos
+  const byP = {};
+  vend.forEach(o=>{ const seen=new Set(); o.l.forEach(([pi,q,v])=>{ if(p!==null && pi!==p) return; byP[pi]=byP[pi]||{n:0,v:0,it:0}; byP[pi].v+=v; byP[pi].it+=q; if(!seen.has(pi)){byP[pi].n++;seen.add(pi);} }); });
+  let pr = Object.entries(byP).sort((x,y)=>y[1].v-x[1].v);
+  if(pr.length>12){ const rest=pr.slice(12); const o={n:0,v:0,it:0}; const orders=new Set();
+    vend.forEach(od=>{ if(od.l.some(l=>rest.some(r=>+r[0]===l[0]))) orders.add(od.id)}); o.n=orders.size;
+    rest.forEach(r=>{o.v+=r[1].v;o.it+=r[1].it}); pr = pr.slice(0,12).concat([['outros',o]]); }
+  const pl = pr.map(x=>x[0]==='outros'?`Outros (${Object.keys(byP).length-12} títulos)`:shortName(DATA.prods[x[0]]));
+  const pf = pr.map(x=>x[0]==='outros'?'Outros títulos':DATA.prods[x[0]]);
+  hbar('cPV', pl, pr.map(x=>x[1].n), v=>num(v), C.ink, pf);
+  hbar('cPR', pl, pr.map(x=>+x[1].v.toFixed(2)), brlK, C.gold, pf);
+}
+resetF();
+</script>
+</body>
+</html>
